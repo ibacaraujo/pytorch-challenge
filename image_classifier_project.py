@@ -54,3 +54,43 @@ optimizer = optim.SGD(vgg16.parameters(), lr=0.01)
 n_epochs = 30
 
 valid_loss_min = np.Inf
+
+print('Beginning training...')
+for epoch in range(1, n_epochs+1):
+    train_loss = 0.0
+    valid_loss = 0.0
+    # train the model
+    vgg16.train()
+    print('Training...')
+    for data, target in train_dataloader:
+        print('For data, target...')
+        data, target = data.cuda(), target.cuda()
+        optimizer.zero_grad()
+        output = vgg16(data)
+        loss = criterion(output, target)
+        loss.backward()
+        optimizer.step()
+        train_loss += loss.item()*data.size(0)
+    # validate the model
+    vgg16.eval()
+    print('Validation...')
+    for data, target in valid_dataloader:
+        data, target = data.cuda(), target.cuda()
+        output = model(data)
+        loss = criterion(output, target)
+        valid_loss += loss.item()*data.size(0)
+    
+    # calculate average losses
+    train_loss = train_loss/len(train_dataloader.dataset)
+    valid_loss = valid_loss/len(valid_dataloader.dataset)
+    
+    # print training/validation statistics
+    print('Epoch: {} \tTraining Loss: {:.6f} \tValidation Loss: {:.6f}'.format(
+        epoch, train_loss, valid_loss))
+
+    # save model if validation loss has decreased
+    if valid_loss <= valid_loss_min:
+        print('Validation loss decreased ({:.6f} --> {:.6f}). Saving model...'.format(
+            valid_loss_min, valid_loss))
+        torch.save(model.state_dict(), 'model_flowers.pt')
+        valid_loss_min = valid_loss
