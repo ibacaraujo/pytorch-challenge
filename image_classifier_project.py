@@ -5,6 +5,8 @@ import torchvision
 from torchvision import datasets, transforms, models
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.optim as optim
+import numpy as np
 
 ## Load the data
 
@@ -43,6 +45,12 @@ vgg16.classifier[6] = nn.Linear(4096,102)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-vgg.to(device)
+vgg16.to(device)
 
+criterion = nn.CrossEntropyLoss()
 
+optimizer = optim.SGD(vgg16.parameters(), lr=0.01)
+
+n_epochs = 30
+
+valid_loss_min = np.Inf
